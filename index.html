@@ -1,139 +1,660 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Math Quest - Cows and Bulls</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f8ff; margin: 0; padding: 0; text-align: center; }
-        h1 { margin: 10px 0; }
-        h2 { margin: 0; }
-        #game-container { max-width: 900px; margin: auto; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
-        .history { max-height: 300px; overflow-y: auto; text-align: left; padding: 10px; background: #fafafa; margin-top: 15px; border: 1px solid #ddd; }
-        input, button, select { margin: 5px; padding: 10px; font-size: 16px; }
-        .btn-clear { background: #ff4d4d; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-clear:hover { background: #cc0000; }
-        #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; }
-        #lightbox-content { background: white; padding: 20px; border-radius: 8px; max-width: 500px; }
-        #lightbox button { margin-top: 15px; }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Math Quest — Cows and Bulls</title>
+<style>
+  :root{
+    --bg1:#1e3c72;
+    --bg2:#2a5298;
+    --text:#e6edf6;
+    --muted:#93a4c3;
+    --chip:#233554cc;
+    --glass:#ffffff12;
+    --ok:#06d6a0;
+    --warn:#ffd166;
+    --bad:#ef476f;
+    --blue:#118ab2;
+    --panel:#0b1226;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    color:var(--text);
+    background:
+      radial-gradient(1300px 900px at 10% 10%, #3a0ca3 0%, #1e3c72 40%, #000814 100%),
+      linear-gradient(120deg, var(--bg1), var(--bg2));
+    background-blend-mode:screen,multiply;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .game{
+    width:min(1200px, 100%);
+    border-radius:22px;
+    background:linear-gradient(180deg, #0b1226cc, #0b1226b5);
+    box-shadow:0 30px 80px #00000080, inset 0 1px 0 #ffffff08;
+    overflow:hidden;
+    border:1px solid #ffffff1a;
+  }
+  header{
+    padding:20px 24px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    justify-content:space-between;
+    background:linear-gradient(90deg, #15223f, #0d1649);
+    border-bottom:1px solid #ffffff1a;
+  }
+  .brand{
+    display:flex;align-items:center;gap:14px;font-weight:800;
+  }
+  .logo{
+    width:42px;height:42px;border-radius:12px;
+    background:conic-gradient(from 220deg, #06d6a0, #ffd166, #ef476f, #118ab2, #06d6a0);
+    box-shadow:0 0 0 3px #ffffff22 inset, 0 6px 16px #0008;
+  }
+  .brandtext{
+    line-height:1.1;
+    display:flex; flex-direction:column;
+  }
+  .brandtext .l1{font-size:18px; letter-spacing:.3px}
+  .brandtext .l2{font-size:16px; opacity:.9}
+  .controls{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+  }
+  select, button, input[type="text"]{
+    font:inherit;
+    color:var(--text);
+    background:var(--glass);
+    border:1px solid #ffffff26;
+    border-radius:12px;
+    padding:10px 14px;
+    outline:none;
+    transition:transform .06s ease, background .2s ease, border-color .2s ease;
+    backdrop-filter: blur(6px);
+  }
+  select:hover, button:hover, input[type="text"]:hover{border-color:#ffffff44}
+  button.primary{
+    background:linear-gradient(180deg, #2dd4bf, #0ea5e9);
+    color:#07121f;
+    border:none;
+    font-weight:800;
+    box-shadow:0 6px 18px #0ea5e980, inset 0 1px 0 #ffffff80;
+  }
+  button.cta{
+    background:linear-gradient(180deg, #ffd166, #f59e0b);
+    color:#1b1f24;
+    border:none;font-weight:900;
+    box-shadow:0 6px 18px #f59e0b66, inset 0 1px 0 #ffffffa0;
+  }
+  button.secondary{
+    background:#ffffff12;border:1px solid #ffffff26;color:#e2e8f0
+  }
+  button:active{transform:translateY(1px)}
+  main{
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap:18px;
+    padding:18px;
+  }
+  @media (max-width:980px){ main{grid-template-columns:1fr} }
+  .panel{
+    background:linear-gradient(180deg, #0b1328, #0b1226);
+    border:1px solid #ffffff14;
+    border-radius:16px;
+    padding:18px;
+    min-height:320px;
+  }
+  .panel h2{margin:0 0 10px 0; font-size:18px; letter-spacing:.3px; display:flex; align-items:center; gap:8px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+  .grow{flex:1}
+  .statbar{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 14px 0}
+  .stat{background:#ffffff0f; border:1px solid #ffffff1a; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:10px; min-width:120px}
+  .stat b{font-size:18px}
+  .pill{padding:6px 10px;border-radius:999px;font-weight:800}
+  .pill.cow{background:#06d6a022;border:1px solid #06d6a066;color:#a8ffdf}
+  .pill.bull{background:#ffd16622;border:1px solid #ffd16666;color:#ffe7ad}
+  .history{margin-top:8px; max-height:520px; overflow:auto; padding-right:4px}
+  .hitem{display:grid; grid-template-columns: 1fr auto auto; gap:8px; padding:10px; border-radius:12px; background:#0d1836; border:1px solid #ffffff10; margin-bottom:8px}
+  .code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; letter-spacing:.5px; background:#030711; padding:6px 10px; border-radius:10px; border:1px solid #ffffff12}
+  .tiny{font-size:12px;color:var(--muted)}
+  .help{background:linear-gradient(180deg, #121a34, #0c1328); border:1px dashed #ffffff26; border-radius:14px; padding:14px; color:#c7d2fe}
+  .numberpad{display:flex; gap:8px; flex-wrap:wrap}
+  .npbtn{
+    width:50px;height:50px;border-radius:14px;
+    border:1px solid #ffffff24;background:#0a1226;color:#e6edf6;font-weight:800;cursor:pointer;
+    transition:transform .06s ease, background .2s ease, border-color .2s ease;
+  }
+  .npbtn:hover{background:#132044}
+  .npbtn.special{min-width:86px; padding:0 10px; display:flex; align-items:center; justify-content:center; font-weight:900}
+  .npbtn.accent{background:#1b2a52;border:1px solid #3b82f6aa}
+  .footer{padding:12px 18px; text-align:center; color:#a3b3d9; font-size:12px; border-top:1px solid #ffffff12; background:#0a1226}
+  .spacer{flex:1}
+  .hidden{display:none !important}
+  .success{color:#9effcb}
+  .warn{color:#ffd4a6}
+  .error{color:#ffb4c4}
+  .shake{animation:shake .3s linear}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+  .confetti{position:fixed;top:0;left:0;width:100%;height:0;pointer-events:none;overflow:visible}
+  .confetti i{position:absolute;width:8px;height:14px;opacity:.9;transform:translateY(-10px) rotate(0deg);animation:fall 1.6s linear forwards}
+  @keyframes fall{to{transform:translateY(120vh) rotate(720deg)}}
+  .lightbox{position:fixed; inset:0; background:#0008; display:flex; align-items:center; justify-content:center; z-index:50;}
+  .modal{width:min(760px, 92vw); background:linear-gradient(180deg, #0f1b3b, #0b1226); border:1px solid #ffffff22; border-radius:20px; padding:20px; box-shadow:0 30px 80px #0009;}
+  .modal h3{margin:0 0 8px 0}
+  .modal ul{margin:10px 0 0 18px; color:#cfe1ff}
+  .modal .row{justify-content:flex-end}
+  .switch{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#c7d2fe; background:#ffffff0f; border:1px solid #ffffff1a; padding:8px 10px; border-radius:999px;}
+</style>
 </head>
 <body>
-<div id="lightbox">
-    <div id="lightbox-content">
-        <h2>Game Rules</h2>
-        <p>The goal is to guess the secret number. Cows = correct digit in correct place. Bulls = correct digit, wrong place.</p>
-        <p>Modes: "You guess" (you try to find system's number) and "System guesses" (system tries to find your number).</p>
-        <button onclick="document.getElementById('lightbox').style.display='none'">Start Game</button>
+<div class="game">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="brandtext">
+        <span class="l1">Math Quest</span>
+        <span class="l2">Cows and Bulls</span>
+      </div>
     </div>
+    <div class="controls">
+      <label class="tiny">Mode</label>
+      <select id="roleSelect" title="Choose mode">
+        <option value="A" selected>You guess</option>
+        <option value="B">System guesses</option>
+      </select>
+      <label class="tiny">Digits</label>
+      <select id="lengthSelect" title="Choose digits">
+        <option value="4" selected>4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+      <label class="tiny">Solver</label>
+      <select id="solverSelect" title="System solver strategy">
+        <option value="smart" selected>Smart</option>
+        <option value="fast">Fast</option>
+      </select>
+      <button id="newGame" class="cta">New Game</button>
+      <button id="muteBtn" class="secondary" aria-pressed="false">Sound On</button>
+      <button id="rulesBtn" class="secondary">Rules</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" id="playPanel">
+      <h2 id="modeTitle">You guess</h2>
+      <div class="statbar">
+        <div class="stat"><span>Attempts</span><b id="attempts">0</b></div>
+        <div class="stat"><span>Digits</span><b id="digitsStat">4</b></div>
+        <div class="stat">
+          <span class="pill cow">🐄 cows</span>
+          <span class="pill bull">🐂 bulls</span>
+        </div>
+      </div>
+
+      <!-- You guess -->
+      <div id="roleABox">
+        <div class="row">
+          <input id="guessInput" class="grow" type="text" inputmode="numeric" placeholder="Enter your guess" maxlength="4" />
+          <button id="submitGuess" class="primary" type="button">Submit</button>
+          <button id="reveal" class="secondary" type="button">Reveal</button>
+        </div>
+        <div class="numberpad" id="pad"></div>
+        <div id="msgA" class="tiny"></div>
+        <div class="help tiny" style="margin-top:10px">
+          Cow means right digit and right place. Bull means right digit and wrong place.
+        </div>
+      </div>
+
+      <!-- System guesses -->
+      <div id="roleBBox" class="hidden">
+        <div class="row" style="align-items:center">
+          <div class="switch">
+            <input type="checkbox" id="autoStart" checked />
+            <label for="autoStart">Auto start with first guess</label>
+          </div>
+          <div class="spacer"></div>
+          <div class="row">
+            <label class="tiny">Cows</label>
+            <select id="cowSel"></select>
+            <label class="tiny">Bulls</label>
+            <select id="bullSel"></select>
+            <button id="sendFeedback" class="primary" type="button">Submit feedback</button>
+          </div>
+        </div>
+        <div id="sysGuessArea" class="code" style="margin-top:8px">Click Submit feedback to advance</div>
+        <div id="msgB" class="tiny" style="margin-top:6px"></div>
+        <div class="help tiny" style="margin-top:10px">
+          Keep your secret number in mind. After each feedback the system will auto guess the next number. Smart tries to minimize the remaining search space. Fast is a quick sampling method.
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section class="panel">
+      <h2>History</h2>
+      <div id="history" class="history"></div>
+      <div class="help tiny">
+        History keeps all attempts. Scroll to review your last ten and more. Leading zero is allowed.
+      </div>
+    </section>
+  </main>
+
+  <div class="footer tiny">Made for joyful practice. Have fun decoding</div>
 </div>
 
-<div id="game-container">
-    <h1>Math Quest</h1>
-    <h2>Cows and Bulls</h2>
-    <label>Mode: 
-        <select id="mode" onchange="startGame()">
-            <option value="you">You guess</option>
-            <option value="system">System guesses</option>
-        </select>
-    </label>
-    <label>Digits: 
-        <select id="digits" onchange="startGame()">
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6" selected>6</option>
-        </select>
-    </label>
-    <div id="input-area"></div>
-    <div class="history" id="history"></div>
+<!-- Confetti -->
+<svg class="confetti" id="confetti"></svg>
+
+<!-- Rules Lightbox -->
+<div class="lightbox" id="rulesBox">
+  <div class="modal">
+    <h3>How to play</h3>
+    <ul>
+      <li>You guess mode. The system thinks of a secret number. You enter a guess and you get cows and bulls feedback.</li>
+      <li>System guesses mode. You think of a number. You tell the system cows and bulls and it auto guesses the next number.</li>
+      <li>Cow is right digit in the right place. Bull is right digit in the wrong place.</li>
+      <li>Choose 4, 5, or 6 digits.</li>
+      <li>Smart solver tries to remove as many candidates as possible each turn. Fast solver is lighter and random based.</li>
+    </ul>
+    <div class="row" style="margin-top:14px">
+      <label class="switch">
+        <input type="checkbox" id="hideRulesToggle" />
+        <span>Do not show on start</span>
+      </label>
+      <div class="spacer"></div>
+      <button id="closeRules" class="cta">Got it</button>
+    </div>
+  </div>
 </div>
 
 <script>
-let secret = [];
-let history = [];
-let mode = "you";
-let digits = 6;
-let candidates = [];
+  /* ===== Audio ===== */
+  let audioCtx = null;
+  let soundOn = true;
+  const muteBtn = document.getElementById('muteBtn');
+  function tone(freq=440, time=0.08, type='sine', gain=0.03){
+    if(!soundOn) return;
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = type; osc.frequency.value = freq; g.gain.value = gain;
+      osc.connect(g).connect(audioCtx.destination); osc.start();
+      setTimeout(()=>{ osc.stop(); }, time*1000);
+    }catch(e){}
+  }
+  function clickSound(){ tone(520, 0.05, 'triangle', 0.02); }
+  function goodSound(){ tone(660, 0.08, 'square', 0.03); setTimeout(()=>tone(880,0.1,'square',0.03),90); }
+  function badSound(){ tone(220, 0.12, 'sawtooth', 0.03); }
 
-function generateSecret() {
-    secret = Array.from({length: digits}, () => Math.floor(Math.random()*10));
-}
+  muteBtn.addEventListener('click', ()=>{
+    soundOn = !soundOn;
+    muteBtn.textContent = soundOn ? 'Sound On' : 'Sound Off';
+    muteBtn.setAttribute('aria-pressed', String(!soundOn));
+    clickSound();
+  });
 
-function calculateCowsAndBulls(secretNum, guessNum) {
-    let cows = secretNum.filter((d, i) => d === guessNum[i]).length;
-    let bulls = 0;
-    for (let n of new Set(guessNum)) {
-        bulls += Math.min(secretNum.filter(x => x === n).length, guessNum.filter(x => x === n).length);
+  /* ===== Confetti ===== */
+  const confettiEl = document.getElementById('confetti');
+  function confettiBurst(n=90){
+    confettiEl.innerHTML = '';
+    const colors = ['#ffd166','#06d6a0','#ef476f','#118ab2','#fca311','#a78bfa'];
+    for(let i=0;i<n;i++){
+      const piece = document.createElement('i');
+      piece.style.left = (Math.random()*100) + 'vw';
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.animationDelay = (Math.random()*0.35) + 's';
+      confettiEl.appendChild(piece);
     }
-    bulls -= cows;
-    return {cows, bulls};
-}
+    setTimeout(()=>{ confettiEl.innerHTML=''; }, 1900);
+  }
 
-function startGame() {
-    mode = document.getElementById('mode').value;
-    digits = parseInt(document.getElementById('digits').value);
-    history = [];
-    document.getElementById('history').innerHTML = "";
-    if (mode === "you") {
-        generateSecret();
-        document.getElementById('input-area').innerHTML = `
-            <input id="guess" maxlength="${digits}" placeholder="Enter your guess">
-            <button onclick="submitGuess()">Guess</button>
-            <button class="btn-clear" onclick="startGame()">CLR</button>
-        `;
-    } else {
-        candidates = [];
-        for (let i = 0; i < 10**digits; i++) {
-            candidates.push(String(i).padStart(digits, '0').split('').map(Number));
-        }
-        makeSystemGuess();
+  /* ===== Elements ===== */
+  const roleSelect = document.getElementById('roleSelect');
+  const lengthSelect = document.getElementById('lengthSelect');
+  const solverSelect = document.getElementById('solverSelect');
+  const newGameBtn = document.getElementById('newGame');
+  const modeTitle = document.getElementById('modeTitle');
+  const attemptsEl = document.getElementById('attempts');
+  const digitsStat = document.getElementById('digitsStat');
+  const historyEl = document.getElementById('history');
+
+  const roleABox = document.getElementById('roleABox');
+  const guessInput = document.getElementById('guessInput');
+  const submitGuessBtn = document.getElementById('submitGuess');
+  const revealBtn = document.getElementById('reveal');
+  const msgA = document.getElementById('msgA');
+  const pad = document.getElementById('pad');
+
+  const roleBBox = document.getElementById('roleBBox');
+  const cowSel = document.getElementById('cowSel');
+  const bullSel = document.getElementById('bullSel');
+  const sendFeedback = document.getElementById('sendFeedback');
+  const sysGuessArea = document.getElementById('sysGuessArea');
+  const msgB = document.getElementById('msgB');
+  const autoStart = document.getElementById('autoStart');
+
+  const rulesBox = document.getElementById('rulesBox');
+  const rulesBtn = document.getElementById('rulesBtn');
+  const closeRules = document.getElementById('closeRules');
+  const hideRulesToggle = document.getElementById('hideRulesToggle');
+
+  /* ===== State ===== */
+  let secret = [];
+  let attempts = 0;
+  let length = parseInt(lengthSelect.value, 10);
+  let currentRole = roleSelect.value;
+
+  let lastSysGuess = null;
+  let feedbackLog = [];
+  let candidatePool = null;
+
+  /* ===== Utils ===== */
+  function randomDigit(){ return Math.floor(Math.random()*10); }
+  function makeSecret(len){ return Array.from({length: len}, randomDigit); }
+  function asStr(arr){ return arr.join(''); }
+  function sanitizeDigits(s){
+    // Strip everything except ASCII 0-9 to avoid hidden chars (e.g., zero-width space)
+    return (s || '').replace(/[^0-9]/g, '');
+  }
+  function cowsAndBulls(a, b){
+    let cows = 0;
+    const fa = new Array(10).fill(0);
+    const fb = new Array(10).fill(0);
+    for(let i=0;i<a.length;i++){
+      if(a[i] === b[i]) cows++;
+      fa[a[i]]++; fb[b[i]]++;
     }
-}
-
-function submitGuess() {
-    const guess = document.getElementById('guess').value.split('').map(Number);
-    if (guess.length !== digits || guess.some(isNaN)) return;
-    let {cows, bulls} = calculateCowsAndBulls(secret, guess);
-    history.push(`${guess.join('')} → ${cows} Cows, ${bulls} Bulls`);
-    updateHistory();
-    if (cows === digits) {
-        alert("You win!");
+    let overlap = 0;
+    for(let d=0; d<10; d++) overlap += Math.min(fa[d], fb[d]);
+    return {cows, bulls: overlap - cows};
+  }
+  function resetHistory(){ historyEl.innerHTML = ''; }
+  function addHistoryRow(guessStr, cows, bulls){
+    const row = document.createElement('div');
+    row.className = 'hitem';
+    row.innerHTML = `<div class="code">${guessStr}</div><div class="pill cow">🐄 ${cows}</div><div class="pill bull">🐂 ${bulls}</div>`;
+    historyEl.prepend(row);
+  }
+  function setDigitsUI(){
+    guessInput.maxLength = length;
+    digitsStat.textContent = String(length);
+    cowSel.innerHTML = '';
+    bullSel.innerHTML = '';
+    for(let i=0;i<=length;i++){
+      const o1 = document.createElement('option'); o1.value = i; o1.textContent = i;
+      const o2 = document.createElement('option'); o2.value = i; o2.textContent = i;
+      cowSel.appendChild(o1); bullSel.appendChild(o2);
     }
-}
-
-function makeSystemGuess() {
-    let guess = candidates[Math.floor(Math.random() * candidates.length)];
-    document.getElementById('input-area').innerHTML = `
-        <p>System's guess: <b>${guess.join('')}</b></p>
-        <label>Cows: <input id="cows" type="number" min="0" max="${digits}" value="0"></label>
-        <label>Bulls: <input id="bulls" type="number" min="0" max="${digits}" value="0"></label>
-    `;
-    document.getElementById('cows').onchange = () => systemFeedback(guess);
-    document.getElementById('bulls').onchange = () => systemFeedback(guess);
-}
-
-function systemFeedback(lastGuess) {
-    const cows = parseInt(document.getElementById('cows').value);
-    const bulls = parseInt(document.getElementById('bulls').value);
-    history.push(`${lastGuess.join('')} → ${cows} Cows, ${bulls} Bulls`);
-    updateHistory();
-    if (cows === digits) {
-        alert("System wins!");
-        return;
+  }
+  function setRoleUI(){
+    if(currentRole === 'A'){
+      roleABox.classList.remove('hidden');
+      roleBBox.classList.add('hidden');
+      modeTitle.textContent = 'You guess';
+    }else{
+      roleBBox.classList.remove('hidden');
+      roleABox.classList.add('hidden');
+      modeTitle.textContent = 'System guesses';
     }
-    candidates = candidates.filter(num => {
-        let r = calculateCowsAndBulls(num, lastGuess);
-        return r.cows === cows && r.bulls === bulls;
+  }
+  function hintFlash(el, text, cls=''){
+    el.textContent = text;
+    el.className = 'tiny ' + cls;
+    setTimeout(()=>{ el.textContent=''; el.className='tiny'; }, 1600);
+  }
+
+  /* ===== Number pad ===== */
+  function buildPad(){
+    pad.innerHTML = '';
+    for(let d=0; d<=9; d++){
+      const b = document.createElement('button');
+      b.className = 'npbtn';
+      b.type = 'button';
+      b.textContent = d;
+      b.addEventListener('click', ()=>{
+        if(guessInput.value.length < length){
+          guessInput.value += String(d);
+          guessInput.classList.remove('shake'); void guessInput.offsetWidth; guessInput.classList.add('shake');
+          clickSound();
+        }else badSound();
+      });
+      pad.appendChild(b);
+    }
+    const back = document.createElement('button');
+    back.className='npbtn special accent'; back.textContent='Back'; back.type='button';
+    back.addEventListener('click', ()=>{
+      if(guessInput.value){
+        guessInput.value = guessInput.value.slice(0,-1);
+        clickSound();
+      }
     });
-    makeSystemGuess();
-}
+    const clr = document.createElement('button');
+    clr.className='npbtn special'; clr.textContent='CLR'; clr.type='button';
+    clr.style.background = '#2a1b3d';
+    clr.style.border = '1px solid #8b5cf6aa';
+    clr.addEventListener('click', ()=>{ guessInput.value=''; clickSound(); });
+    pad.appendChild(back);
+    pad.appendChild(clr);
+  }
 
-function updateHistory() {
-    const histDiv = document.getElementById('history');
-    histDiv.innerHTML = history.slice(-10).map(h => `<div>${h}</div>`).join('');
-}
+  /* ===== New game ===== */
+  function newGame(){
+    attempts = 0; attemptsEl.textContent = '0';
+    length = parseInt(lengthSelect.value, 10);
+    currentRole = roleSelect.value;
+    setDigitsUI(); setRoleUI(); resetHistory();
+    msgA.textContent = ''; msgB.textContent = '';
+    sysGuessArea.textContent = 'Click Submit feedback to advance';
+    lastSysGuess = null; feedbackLog = [];
+    if(currentRole === 'A'){
+      secret = makeSecret(length);
+    }else{
+      secret = [];
+    }
+    buildPad();
+    initSolverPools();
+    if(currentRole === 'B' && autoStart.checked){
+      nextSystemGuess(true);
+    }
+  }
 
-startGame();
+  /* ===== You guess actions ===== */
+  function handleSubmitGuess(){
+    let raw = sanitizeDigits(guessInput.value.trim());
+    guessInput.value = raw; // reflect sanitized value
+    if(raw.length !== length){
+      hintFlash(msgA, `Enter a ${length}-digit number`, 'warn');
+      guessInput.classList.remove('shake'); void guessInput.offsetWidth; guessInput.classList.add('shake');
+      badSound(); return;
+    }
+    const guess = raw.split('').map(d=>parseInt(d,10));
+    attempts++; attemptsEl.textContent = String(attempts);
+    const {cows, bulls} = cowsAndBulls(secret, guess);
+    addHistoryRow(raw, cows, bulls);
+    if(cows === length){
+      hintFlash(msgA, `Correct! Solved in ${attempts} attempts`, 'success');
+      goodSound(); confettiBurst();
+    }else{
+      hintFlash(msgA, `Posted. Keep going`);
+      tone(500+30*bulls, 0.06);
+    }
+    guessInput.value = ''; guessInput.focus();
+  }
+  submitGuessBtn.addEventListener('click', handleSubmitGuess);
+  guessInput.addEventListener('input', (e)=>{
+    // Live sanitize (prevents pasted non-digits)
+    const cur = guessInput.value;
+    const cleaned = sanitizeDigits(cur).slice(0, length);
+    if(cur !== cleaned) guessInput.value = cleaned;
+  });
+  guessInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') handleSubmitGuess(); });
+
+  /* ===== Solver setup ===== */
+  function initSolverPools(){
+    candidatePool = null;
+    if(solverSelect.value === 'smart'){
+      if(length === 4){
+        candidatePool = [];
+        for(let i=0;i<10000;i++){
+          const s = String(i).padStart(4,'0');
+          candidatePool.push(s.split('').map(d=>+d));
+        }
+      }else{
+        const target = length===5 ? 120000 : 160000;
+        candidatePool = makePoolSample(target, length);
+      }
+    }
+  }
+  function makePoolSample(n, len){
+    const pool = [];
+    while(pool.length < n) pool.push(makeSecret(len));
+    return pool;
+  }
+  function filterPool(pool, log){
+    if(log.length === 0) return pool;
+    return pool.filter(cand => {
+      for(const fb of log){
+        const r = cowsAndBulls(cand, fb.guess);
+        if(r.cows !== fb.cows || r.bulls !== fb.bulls) return false;
+      }
+      return true;
+    });
+  }
+  function pickMinExpected(pool, log){
+    const capCandidates = Math.min(pool.length, 2000);
+    const evalCandidates = Math.min(pool.length, 300);
+    const sampleIdx = new Set();
+    while(sampleIdx.size < evalCandidates) sampleIdx.add((Math.random()*pool.length)|0);
+    const evalSet = Array.from(sampleIdx).map(i=>pool[i]);
+
+    const partIdx = new Set();
+    while(partIdx.size < capCandidates) partIdx.add((Math.random()*pool.length)|0);
+    const partSet = Array.from(partIdx).map(i=>pool[i]);
+
+    let best = null, bestScore = Infinity;
+    for(const guess of evalSet){
+      const map = new Map();
+      for(const cand of partSet){
+        const r = cowsAndBulls(cand, guess);
+        const key = r.cows + ':' + r.bulls;
+        map.set(key, (map.get(key) || 0) + 1);
+      }
+      let score = 0;
+      for(const cnt of map.values()){
+        const p = cnt / partSet.length;
+        score += p * (cnt);
+      }
+      if(score < bestScore){
+        bestScore = score; best = guess;
+      }
+    }
+    return best || pool[0];
+  }
+  function proposeCandidate(len, log){
+    const MAX_TRIES = 70000;
+    for(let t=0; t<MAX_TRIES; t++){
+      const cand = makeSecret(len);
+      let ok = true;
+      for(const fb of log){
+        const r = cowsAndBulls(cand, fb.guess);
+        if(r.cows !== fb.cows || r.bulls !== fb.bulls){ ok = false; break; }
+      }
+      if(ok) return cand;
+    }
+    return null;
+  }
+
+  /* ===== System guesses flow ===== */
+  function nextSystemGuess(first=false){
+    let candidate = null;
+    if(solverSelect.value === 'smart'){
+      candidatePool = filterPool(candidatePool, feedbackLog);
+      if(candidatePool.length === 0){
+        sysGuessArea.textContent = 'No candidate fits the feedback';
+        hintFlash(msgB, 'Feedback looks inconsistent. Start a new round or adjust the last step', 'error'); badSound(); return;
+      }
+      candidate = pickMinExpected(candidatePool, feedbackLog);
+    }else{
+      candidate = proposeCandidate(length, feedbackLog);
+      if(!candidate){ sysGuessArea.textContent = 'No candidate found'; badSound(); return; }
+    }
+    lastSysGuess = candidate;
+    sysGuessArea.textContent = asStr(candidate);
+    if(first){
+      hintFlash(msgB, 'Set cows and bulls then submit');
+    }
+    clickSound();
+  }
+
+  function submitFeedback(){
+    if(!lastSysGuess){
+      nextSystemGuess(true);
+      return;
+    }
+    const cows = parseInt(cowSel.value, 10);
+    const bulls = parseInt(bullSel.value, 10);
+    if(isNaN(cows) || isNaN(bulls) || cows<0 || bulls<0 || cows>length || bulls>length || cows + bulls > length){
+      hintFlash(msgB, 'Feedback out of range', 'warn'); badSound(); return;
+    }
+    attempts++; attemptsEl.textContent = String(attempts);
+    addHistoryRow(asStr(lastSysGuess), cows, bulls);
+
+    if(cows === length){
+      sysGuessArea.textContent = 'Solved';
+      hintFlash(msgB, `System found your number in ${attempts} attempts`, 'success'); goodSound(); confettiBurst();
+      lastSysGuess = null; return;
+    }
+    feedbackLog.push({guess:lastSysGuess.slice(), cows, bulls});
+    lastSysGuess = null;
+    hintFlash(msgB, 'Thinking the next best guess');
+    setTimeout(()=> nextSystemGuess(), 50);
+  }
+
+  sendFeedback.addEventListener('click', submitFeedback);
+  document.addEventListener('keydown', (e)=>{
+    if(roleSelect.value === 'B' && (e.key === 'Enter' || e.keyCode === 13)){
+      e.preventDefault();
+      submitFeedback();
+    }
+  });
+  function maybeAutoSubmit(){
+    if(roleSelect.value !== 'B') return;
+    if(lastSysGuess == null) return;
+    const c = parseInt(cowSel.value,10); const b = parseInt(bullSel.value,10);
+    if(!isNaN(c) && !isNaN(b)) submitFeedback();
+  }
+  cowSel.addEventListener('change', maybeAutoSubmit);
+  bullSel.addEventListener('change', maybeAutoSubmit);
+
+  /* ===== Top level switches ===== */
+  function showRules(on){ rulesBox.classList.toggle('hidden', !on); }
+  rulesBtn.addEventListener('click', ()=> showRules(true));
+  closeRules.addEventListener('click', ()=>{
+    if(hideRulesToggle.checked){
+      try{ localStorage.setItem('cb_rules_hide','1'); }catch(e){}
+    }
+    showRules(false);
+  });
+
+  roleSelect.addEventListener('change', newGame);
+  lengthSelect.addEventListener('change', newGame);
+  solverSelect.addEventListener('change', newGame);
+  newGameBtn.addEventListener('click', newGame);
+
+  /* ===== Init ===== */
+  try{
+    if(localStorage.getItem('cb_rules_hide') === '1') showRules(false);
+  }catch(e){}
+  buildPad();
+  newGame();
 </script>
 </body>
 </html>
