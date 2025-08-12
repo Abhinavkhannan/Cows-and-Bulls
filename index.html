@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Math Quest - Cows and Bulls</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f8ff; margin: 0; padding: 0; text-align: center; }
+        h1 { margin: 10px 0; }
+        h2 { margin: 0; }
+        #game-container { max-width: 900px; margin: auto; padding: 20px; background: #ffffff; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        .history { max-height: 300px; overflow-y: auto; text-align: left; padding: 10px; background: #fafafa; margin-top: 15px; border: 1px solid #ddd; }
+        input, button, select { margin: 5px; padding: 10px; font-size: 16px; }
+        .btn-clear { background: #ff4d4d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-clear:hover { background: #cc0000; }
+        #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; }
+        #lightbox-content { background: white; padding: 20px; border-radius: 8px; max-width: 500px; }
+        #lightbox button { margin-top: 15px; }
+    </style>
+</head>
+<body>
+<div id="lightbox">
+    <div id="lightbox-content">
+        <h2>Game Rules</h2>
+        <p>The goal is to guess the secret number. Cows = correct digit in correct place. Bulls = correct digit, wrong place.</p>
+        <p>Modes: "You guess" (you try to find system's number) and "System guesses" (system tries to find your number).</p>
+        <button onclick="document.getElementById('lightbox').style.display='none'">Start Game</button>
+    </div>
+</div>
+
+<div id="game-container">
+    <h1>Math Quest</h1>
+    <h2>Cows and Bulls</h2>
+    <label>Mode: 
+        <select id="mode" onchange="startGame()">
+            <option value="you">You guess</option>
+            <option value="system">System guesses</option>
+        </select>
+    </label>
+    <label>Digits: 
+        <select id="digits" onchange="startGame()">
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6" selected>6</option>
+        </select>
+    </label>
+    <div id="input-area"></div>
+    <div class="history" id="history"></div>
+</div>
+
+<script>
+let secret = [];
+let history = [];
+let mode = "you";
+let digits = 6;
+let candidates = [];
+
+function generateSecret() {
+    secret = Array.from({length: digits}, () => Math.floor(Math.random()*10));
+}
+
+function calculateCowsAndBulls(secretNum, guessNum) {
+    let cows = secretNum.filter((d, i) => d === guessNum[i]).length;
+    let bulls = 0;
+    for (let n of new Set(guessNum)) {
+        bulls += Math.min(secretNum.filter(x => x === n).length, guessNum.filter(x => x === n).length);
+    }
+    bulls -= cows;
+    return {cows, bulls};
+}
+
+function startGame() {
+    mode = document.getElementById('mode').value;
+    digits = parseInt(document.getElementById('digits').value);
+    history = [];
+    document.getElementById('history').innerHTML = "";
+    if (mode === "you") {
+        generateSecret();
+        document.getElementById('input-area').innerHTML = `
+            <input id="guess" maxlength="${digits}" placeholder="Enter your guess">
+            <button onclick="submitGuess()">Guess</button>
+            <button class="btn-clear" onclick="startGame()">CLR</button>
+        `;
+    } else {
+        candidates = [];
+        for (let i = 0; i < 10**digits; i++) {
+            candidates.push(String(i).padStart(digits, '0').split('').map(Number));
+        }
+        makeSystemGuess();
+    }
+}
+
+function submitGuess() {
+    const guess = document.getElementById('guess').value.split('').map(Number);
+    if (guess.length !== digits || guess.some(isNaN)) return;
+    let {cows, bulls} = calculateCowsAndBulls(secret, guess);
+    history.push(`${guess.join('')} → ${cows} Cows, ${bulls} Bulls`);
+    updateHistory();
+    if (cows === digits) {
+        alert("You win!");
+    }
+}
+
+function makeSystemGuess() {
+    let guess = candidates[Math.floor(Math.random() * candidates.length)];
+    document.getElementById('input-area').innerHTML = `
+        <p>System's guess: <b>${guess.join('')}</b></p>
+        <label>Cows: <input id="cows" type="number" min="0" max="${digits}" value="0"></label>
+        <label>Bulls: <input id="bulls" type="number" min="0" max="${digits}" value="0"></label>
+    `;
+    document.getElementById('cows').onchange = () => systemFeedback(guess);
+    document.getElementById('bulls').onchange = () => systemFeedback(guess);
+}
+
+function systemFeedback(lastGuess) {
+    const cows = parseInt(document.getElementById('cows').value);
+    const bulls = parseInt(document.getElementById('bulls').value);
+    history.push(`${lastGuess.join('')} → ${cows} Cows, ${bulls} Bulls`);
+    updateHistory();
+    if (cows === digits) {
+        alert("System wins!");
+        return;
+    }
+    candidates = candidates.filter(num => {
+        let r = calculateCowsAndBulls(num, lastGuess);
+        return r.cows === cows && r.bulls === bulls;
+    });
+    makeSystemGuess();
+}
+
+function updateHistory() {
+    const histDiv = document.getElementById('history');
+    histDiv.innerHTML = history.slice(-10).map(h => `<div>${h}</div>`).join('');
+}
+
+startGame();
+</script>
+</body>
+</html>
